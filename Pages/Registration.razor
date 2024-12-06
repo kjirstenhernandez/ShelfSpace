@@ -1,0 +1,92 @@
+@page "/registration"
+@inject UserState UserState
+@inject MediaState MediaState
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<div class="main">
+    <EditForm EditContext=editContext OnValidSubmit="CreateUser">
+        <div class="registration-user-info">
+            <h4> Create an Account</h4>
+            @if (isError){
+                <div class="alert alert-danger">
+                    Please check your information
+                </div>
+            }
+            <UserForm User = "newUser" />
+        </div>
+        <button class="checkout-button btn btn-warning" type="submit" disabled="@isError"> 
+            Create User 
+        </button>
+
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+    </EditForm>
+    
+</div>
+
+
+
+@code {
+    
+    User user => UserState.user;
+    public List<User> Users { get; set; } = new List<User>();
+    
+    private User newUser = new();
+
+    private bool isError = true;
+    EditContext? editContext;
+
+    protected override void OnInitialized(){
+        Console.WriteLine("OnInitialized called");
+        editContext = new EditContext(newUser);
+        Console.WriteLine($"EditContext initialized with newUser: {newUser.GetHashCode()}");
+        editContext.OnFieldChanged += HandleFieldChanged;  
+    }
+
+    private void HandleFieldChanged(object? sender, FieldChangedEventArgs e) {
+        Console.WriteLine($"Field changed: {e.FieldIdentifier.FieldName}");
+        isError = editContext?.Validate() is false;
+        StateHasChanged();
+    }
+
+    private async Task CreateUser()
+{
+    try
+    {
+        // Simulate HTTP POST
+        var newUserId = await SimulateHttpPost(newUser);
+
+        Users.Add(new User
+        {
+            Name = newUser.Name,
+            Email = newUser.Email,
+            Phone = newUser.Phone
+        });
+
+        newUser = new User(); // Reset form
+        isError = false;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error: " + ex.Message);
+        isError = true;
+    }
+}
+
+    private async Task<int> SimulateHttpPost(User user)
+    {
+        // Simulate a delay for HTTP request
+        await Task.Delay(500);
+
+        // Return a dummy user ID
+        return 123; // Replace with dynamic logic if needed
+    }
+    public void Dispose()
+    {
+        if (editContext is null) return;
+        editContext.OnFieldChanged -= HandleFieldChanged;
+    }
+}
+
