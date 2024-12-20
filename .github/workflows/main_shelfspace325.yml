@@ -25,8 +25,15 @@ jobs:
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
+      - name: Verify build output
+        run: dir ${{ github.workspace }}
+
       - name: Publish with dotnet
-        run: dotnet publish -c Release -o ${{ github.workspace }}\publish
+        run: |
+          echo "Publishing application..."
+          dotnet publish -c Release -o ${{ github.workspace }}\publish
+          echo "Publish completed. Listing published files:"
+          dir ${{ github.workspace }}\publish
 
       - name: Verify current directory
         run: echo Current directory: ${{ github.workspace }}
