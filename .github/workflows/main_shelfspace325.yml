@@ -14,6 +14,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3 # Updated to the latest version of actions/checkout
 
+      - name: List repository contents
+        run: dir "${{ github.workspace }}"
+
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v3
         with:
@@ -44,13 +47,13 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: publish
-      
+
       - name: Verify downloaded artifact
         run: dir "${{ runner.workspace }}/publish"
 
@@ -61,4 +64,4 @@ jobs:
           app-name: 'shelfspace325'
           slot-name: 'Production'
           package: "${{ runner.workspace }}/publish"
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_348CF925CD3C430C8EEA8006E6CBE874 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_348CF925CD3C430C8EEA8006E6CBE874 }}"
