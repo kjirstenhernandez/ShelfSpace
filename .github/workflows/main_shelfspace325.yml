@@ -27,6 +27,9 @@ jobs:
       - name: Publish with dotnet
         run: dotnet publish -c Release -o ${{ github.workspace }}/publish
 
+      - name: Verify published output
+        run: ls ${{ github.workspace }}/publish
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -46,6 +49,9 @@ jobs:
         with:
           name: publish
       
+      - name: Verify downloaded artifact
+        run: ls ${{ runner.workspace }}/publish
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
