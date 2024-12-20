@@ -1,58 +1,76 @@
-name: Azure Static Web Apps CI/CD
+name: Build and deploy ASP.Net Core app to Azure Web App - shelfspace325
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
-    runs-on: ubuntu-latest
-    name: Build and Deploy Job
-    permissions:
-       id-token: write
-       contents: read
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-          lfs: false
-      - name: Install OIDC Client from Core Package
-        run: npm install @actions/core@1.6.0 @actions/http-client
-      - name: Get Id Token
-        uses: actions/github-script@v6
-        id: idtoken
-        with:
-           script: |
-               const coredemo = require('@actions/core')
-               return await coredemo.getIDToken()
-           result-encoding: string
-      - name: Build And Deploy
-        id: builddeploy
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_MANGO_SEA_002F88A1E }}
-          action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "Client" # App source code path
-          api_location: "Api" # Api source code path - optional
-          output_location: "wwwroot" # Built app content directory - optional
-          github_id_token: ${{ steps.idtoken.outputs.result }}
-          ###### End of Repository/Build Configurations ######
+  build:
+    runs-on: windows-latest
 
-  close_pull_request_job:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    name: Close Pull Request Job
     steps:
-      - name: Close Pull Request
-        id: closepullrequest
-        uses: Azure/static-web-apps-deploy@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v3
         with:
-          action: "close"
+          dotnet-version: '6.x'  # Ensure this matches your project's .NET version
+
+      - name: Restore dependencies
+        run: dotnet restore ShelfSpace/ShelfSpace.csproj
+
+      - name: Build with dotnet
+        run: dotnet build ShelfSpace/ShelfSpace.csproj --configuration Release
+
+      - name: Verify build output
+        run: dir ${{ github.workspace }}
+
+      - name: Publish with dotnet
+        run: |
+          echo "Publishing application..."
+          dotnet publish ShelfSpace/ShelfSpace.csproj -c Release -o ${{ github.workspace }}/publish
+          echo "Publish completed. Listing published files:"
+          dir ${{ github.workspace }}/publish
+
+      - name: Verify current directory
+        run: echo Current directory: ${{ github.workspace }}
+
+      - name: List root directory
+        run: dir ${{ github.workspace }}
+
+      - name: Verify published output
+        run: dir ${{ github.workspace }}/publish
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish
+          path: ${{ github.workspace }}/publish
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: publish
+      
+      - name: Verify downloaded artifact
+        run: dir ${{ runner.workspace }}/publish
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'shelfspace325'
+          slot-name: 'Production'
+          package: ${{ runner.workspace }}/publish
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_348CF925CD3C430C8EEA8006E6CBE874 }}
