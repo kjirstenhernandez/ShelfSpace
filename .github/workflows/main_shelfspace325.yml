@@ -26,29 +26,29 @@ jobs:
         run: dotnet build ShelfSpace/ShelfSpace.csproj --configuration Release
 
       - name: Verify build output
-        run: dir ${{ github.workspace }}
+        run: dir "${{ github.workspace }}"
 
       - name: Publish with dotnet
         run: |
           echo "Publishing application..."
-          dotnet publish ShelfSpace/ShelfSpace.csproj -c Release -o ${{ github.workspace }}/publish
+          dotnet publish ShelfSpace/ShelfSpace.csproj -c Release -o "${{ github.workspace }}/publish"
           echo "Publish completed. Listing published files:"
-          dir ${{ github.workspace }}/publish
+          dir "${{ github.workspace }}/publish"
 
       - name: Verify current directory
-        run: echo Current directory: ${{ github.workspace }}
+        run: echo "Current directory: ${{ github.workspace }}"
 
       - name: List root directory
-        run: dir ${{ github.workspace }}
+        run: dir "${{ github.workspace }}"
 
       - name: Verify published output
-        run: dir ${{ github.workspace }}/publish
+        run: dir "${{ github.workspace }}/publish"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: publish
-          path: ${{ github.workspace }}/publish
+          path: "${{ github.workspace }}/publish"
 
   deploy:
     runs-on: windows-latest
@@ -64,7 +64,7 @@ jobs:
           name: publish
       
       - name: Verify downloaded artifact
-        run: dir ${{ runner.workspace }}/publish
+        run: dir "${{ runner.workspace }}/publish"
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -72,5 +72,5 @@ jobs:
         with:
           app-name: 'shelfspace325'
           slot-name: 'Production'
-          package: ${{ runner.workspace }}/publish
+          package: "${{ runner.workspace }}/publish"
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_348CF925CD3C430C8EEA8006E6CBE874 }}
