@@ -53,4 +53,4 @@ jobs:
           app-name: 'shelfspace325'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5888759194054BC0A6AB2D0D9C1E9054 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_348CF925CD3C430C8EEA8006E6CBE874 }}
