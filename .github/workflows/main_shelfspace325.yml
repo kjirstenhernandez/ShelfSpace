@@ -29,10 +29,10 @@ jobs:
         run: dotnet publish -c Release -o ${{ github.workspace }}\publish
 
       - name: Verify current directory
-        run: pwd
+        run: echo Current directory: ${{ github.workspace }}
 
       - name: List root directory
-        run: dir ${GITHUB_WORKSPACE}
+        run: dir ${{ github.workspace }}
 
       - name: Verify published output
         run: dir ${{ github.workspace }}\publish
