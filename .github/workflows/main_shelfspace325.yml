@@ -11,7 +11,8 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v3
@@ -26,6 +27,12 @@ jobs:
 
       - name: Publish with dotnet
         run: dotnet publish -c Release -o ${{ github.workspace }}\publish
+
+      - name: Verify current directory
+        run: pwd
+
+      - name: List root directory
+        run: dir ${GITHUB_WORKSPACE}
 
       - name: Verify published output
         run: dir ${{ github.workspace }}\publish
