@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: List repository contents
+      - name: List root directory contents
         run: dir "${{ github.workspace }}"
 
       - name: List ShelfSpace directory contents
