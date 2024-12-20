@@ -1,0 +1,109 @@
+@page "/registration"
+@inject UserState UserState
+@inject MediaState MediaState
+@inject HttpClient HttpClient;
+@inject NavigationManager NavigationManager
+@using ShelfSpace.Models
+@using System;
+@using System.Text;
+@using System.Security.Cryptography;
+@using ShelfSpace.Services;
+
+<div class="main">
+    <EditForm Model="user" OnValidSubmit="OnSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-outline mb-4">
+        <InputText id="Name" class="form-control" @bind-Value="user.Name" />
+        <label class="form-label" for="Name">First Name</label>
+    </div>
+<InputText type=radio default-value="temp"  @bind-value="user.Id" hidden />
+    <!-- Last Name -->
+    <div class="form-outline mb-4">
+        <InputText id="lastName" class="form-control" @bind-Value="user.LastName" />
+        <label class="form-label" for="lastName">Last Name</label>
+    </div>
+
+    <!-- Email -->
+    <div class="form-outline mb-4">
+        <InputText id="email" type="email" class="form-control" @bind-Value="user.Email" />
+        <label class="form-label" for="email">Email</label>
+    </div>
+
+    <!-- Phone -->
+    <div class="form-outline mb-4">
+        <InputText id="phone" type="tel" class="form-control" @bind-Value="user.Phone" />
+        <label class="form-label" for="phone">Phone</label>
+    </div>
+
+    <!-- Address -->
+    <div class="form-outline mb-4">
+        <InputText id="address" class="form-control" @bind-Value="user.Address" />
+        <label class="form-label" for="address">Address</label>
+    </div>
+
+    <!-- Birthday -->
+    <div class="form-outline mb-4">
+        <InputDate id="birthday" class="form-control" @bind-Value="date" />
+        <label class="form-label" for="birthday">Birthday</label>
+    </div>
+
+    <!-- Password -->
+    <div class="form-outline mb-4">
+        <InputText id="password" type="password" class="form-control" @bind-Value="user.PasswordHash" />
+        <label class="form-label" for="password">Password</label>
+    </div>
+    <InputText  @bind-Value="user.Id" default-value="temp" hidden/>
+
+    <!-- Submit button -->
+    <button type="submit" class="btn btn-primary btn-block mb-4">Create User</button>
+
+    @if (!string.IsNullOrEmpty(errorMessage)){
+    
+        <div class="alert alert-danger">
+            @errorMessage
+        </div>}
+    
+</EditForm>
+    
+</div>
+
+
+@code {
+        private User user = new User();
+        private string ?errorMessage; 
+        
+        private DateTime date;
+        private string? BirthDateString()
+    {
+        string birthday = date.ToString("dd/MM/yyyy");
+        return birthday;
+    }
+            private async Task OnSubmit(){
+                 try {    
+                    user.Id = user.GetHashCode().ToString();
+                    user.BirthDate = BirthDateString(); 
+               
+                    // Send POST request to API
+                    var response = await HttpClient.PostAsJsonAsync(NavigationManager.BaseUri + "api/users/add", user);
+
+                    if (response.IsSuccessStatusCode){
+                        
+                        // Optionally handle success (e.g., navigate to another page)
+                        NavigationManager.NavigateTo(NavigationManager.BaseUri + "login"); // Change the URL as needed
+                    }
+                    else {
+                        // Display error message
+                        errorMessage = "Failed to create user.";
+                    }
+                }
+                
+          
+             catch (Exception ex) {
+            
+                errorMessage = "An error occurred. Please try again later.";
+                Console.WriteLine(ex.Message);}
+}     
+                    
+}

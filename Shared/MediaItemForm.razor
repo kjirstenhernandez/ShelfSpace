@@ -1,0 +1,54 @@
+<div class="mb-3">
+    <label for="title-input" class="form-label">Title
+    <InputText
+        class="form-control"
+        name="address-input"
+        @bind-Value="Media.Title" 
+    /></label>
+    <ValidationMessage For="@(() => Media.Title)" />
+</div>
+<div class="mb-3">
+    <label for="genre-input" class="form-label">Genre</label>
+    <InputText
+        class="form-control"
+        name="genre-input"
+        @bind-Value="Media.Genre" 
+    />
+    <ValidationMessage For="@(() => Media.Genre)" />
+</div>
+<div class="mb-3">
+    <label for="year-input" class="form-label">Year</label>
+    <InputNumber
+        class="form-control"
+        name="year-input"
+        @bind-Value="Media.Year" 
+    />
+    <ValidationMessage For="@(() => Media.Year)" />
+</div>
+
+
+<div class="mb-3">
+    <label class="form-label" for="type-input">Type</label>
+    <InputSelect class="form-control" @bind-Value="Media.Type">
+        <option value="" selected disabled="@(isDropdownDisabled)">Select One</option>
+        @foreach (var type in Enum.GetValues(typeof(MediaType))){
+            <option value = "@type">@type</option>
+        }
+    </InputSelect>
+    <ValidationMessage For="@(() => Media.Type)" />
+</div>
+
+
+
+@code {
+    [Parameter, EditorRequired]
+    public required MediaItem Media { get; set;}
+
+    private bool isDropdownDisabled = true;
+
+        private void HandleDropdownChange(ChangeEventArgs e)
+    {
+        // Remove the disabled state once the dropdown is interacted with
+        isDropdownDisabled = false;
+    }
+}

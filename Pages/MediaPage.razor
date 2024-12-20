@@ -1,0 +1,220 @@
+
+@page "/profile/{id}"
+@using ShelfSpace
+@attribute [Authorize]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject MediaState MediaState
+@inject UserState UserState
+@inject IJSRuntime JavaScript
+
+
+
+<style>
+    .filterForm {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+    }
+
+    .filterItem {
+    display: flex;
+    flex-direction: column;
+    }
+
+    .filterItem>input,
+    .submitBtn {
+    height: 40px;
+    }
+
+    .tableItemCenter {
+    text-align: center;
+    }
+
+    .itemActions {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    }
+</style>
+
+
+<h1>@($"{user.Name}'s Media Shelf")</h1>
+
+@if (filterFormClosed) {
+    <button @onclick="OpenFilterMenu">Filter Items</button>
+}
+else
+{
+    <form class="filterForm">
+        <legend style="border-bottom: 1px solid black; margin: 0px;">Filter Items</legend>
+        <section class="filterItem">
+            <label for="title">Title</label>
+            <input type="text" id="title" @bind="searchTitle" placeholder="Search by Title" />
+        </section>
+        <section class="filterItem">
+            <label for="startDate">Start Date</label>
+            <input type="date" id="startDate" @bind="startDate" />
+        </section>
+        <section class="filterItem">
+            <label for="endDate">End Date</label>
+            <input type="date" id="endDate" @bind="endDate" />
+        </section>
+        <section class="filterItem">
+            <label for="searchGenre">Genre</label>
+            <input type="text" id="searchGenre" @bind="searchGenre" placeholder="Search by Genre" />
+        </section>
+        <section class="filterItem">
+            <label for="type">Type</label>
+            <select @bind="searchType" id="type" style="height: 40px; padding: 0.25rem;">
+                <option value="">All Types</option>
+                @foreach (var type in Enum.GetValues<MediaType>())
+                {
+                    <option value="@type">@type</option>
+                }
+            </select>
+        </section>
+        <section style="display: flex; gap: 0.5rem;">
+            <button class="submitBtn" type="button" @onclick="FilterMedia">Submit</button>
+            @if (!filterFormClosed)
+            {
+                <button class="submitBtn" type="button" @onclick="ResetFilter">Clear Filter</button>
+            }
+        </section>
+    </form>
+
+}
+
+<button style="margin: 1rem;" @onclick="GoToAddItemPage">Create New Item</button>
+
+
+<h2 style="margin-top: 1rem;">Your Items</h2>
+<hr>
+<table class="table">
+    <thead>
+        <tr>
+            <th class="tableItemCenter">Title</th>
+            <th class="tableItemCenter">Type</th>
+            <th class="tableItemCenter">Genre</th>
+            <th class="tableItemCenter">Release Year</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (mediaItems.Count > 0)
+        {
+            if (filteredMediaItems != null && filteredMediaItems.Any())
+            {
+                    @foreach (var item in filteredMediaItems)
+                {
+                    <tr>
+                        <ItemInfo media="item" />
+                        <td class="itemActions">
+                            <a href='/profile/Edit/@item.SpecialId'>Edit</a> |
+                            <a href='/profile/Detail/@item.SpecialId'>Detail</a> |
+                            @* <p style="color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1)); text-decoration: underline;" @onclick="() => ShowDeleteModal(item)">Delete</p> *@
+                            <a href='/profile/Delete/@item.SpecialId'>Delete</a>
+                        </td>
+                    </tr>
+                }
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" style="text-align: center;">No Media</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+    UserState userState;
+    private List<MediaItem> mediaItems = new();
+    private List<MediaItem>? filteredMediaItems;
+    private bool filterFormClosed = true;
+    // Filter Params
+    private string? searchTitle;
+    private DateTime? startDate;
+    private DateTime? endDate;
+    private string? searchGenre;
+    private MediaType? searchType;
+    private bool clearFilterHidden = true;
+    public User? user;
+    private String Title; 
+
+     protected override async Task OnInitializedAsync(){
+        
+        if (string.IsNullOrWhiteSpace(Id)){
+            NavigationManager.NavigateTo("/error");
+            return;
+        }
+
+        user = await UserState.GetCurrentUserAsync();
+
+        if (user == null){
+            NavigationManager.NavigateTo(NavigationManager.BaseUri + "login");
+            return;
+        }
+
+        try
+        {
+            mediaItems = await HttpClient.GetFromJsonAsync<List<MediaItem>>($"{NavigationManager.BaseUri}media/user/{Id}");
+        }
+        catch (Exception ex)
+        {
+            // Handle exceptions (e.g., log error, show a message)
+            Console.WriteLine($"Error loading media items: {ex.Message}");
+            NavigationManager.NavigateTo("/error");
+        }
+        @* user = await UserState.GetCurrentUserAsync();
+
+        if (user == null){
+            NavigationManager.NavigateTo(NavigationManager.BaseUri + "login");
+        }
+
+        mediaItems = await HttpClient.GetFromJsonAsync<List<MediaItem>>(NavigationManager.BaseUri + $"media/user/{Id}"); *@
+    }
+    private void ResetFilter()
+    {
+        searchTitle = default;
+        startDate = default;
+        endDate = default;
+        searchGenre = default;
+        searchType = default;
+        filterFormClosed = true;
+        FilterMedia();
+        clearFilterHidden = true;
+    }
+    
+    private void FilterMedia()
+    {
+        filteredMediaItems = mediaItems
+            .Where(item =>
+                // Title
+                (string.IsNullOrEmpty(searchTitle) || item.Title.Contains(searchTitle, StringComparison.OrdinalIgnoreCase)) &&
+                // Start/End Date
+                (!startDate.HasValue || new DateTime(item.Year, 1, 1) >= startDate.Value) &&
+                (!endDate.HasValue || new DateTime(item.Year, 12, 31) <= endDate.Value) &&
+                // Genre
+                (string.IsNullOrEmpty(searchGenre) || item.Genre.Equals(searchGenre, StringComparison.OrdinalIgnoreCase)) &&
+                // Media Type
+                (!searchType.HasValue || item.Type == searchType.Value)
+                )
+            .ToList();
+        clearFilterHidden = false;
+    }
+   
+    private void GoToAddItemPage(){
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + $"profile/add/{user.Id}");
+    }
+    private void OpenFilterMenu(MouseEventArgs e)
+    {
+        filterFormClosed = !filterFormClosed;
+    }
+
+   
+}

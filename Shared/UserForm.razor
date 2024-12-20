@@ -1,0 +1,28 @@
+@using Microsoft.AspNetCore.Components.Forms;
+
+<div class="form-field">
+    <label for="name">Name:</label>
+    <div>
+        <InputText id="name" @bind-Value="User.Name" />
+        <ValidationMessage For="@(() => User.Name)" />
+    </div>
+</div>
+<div class="form-field">
+    <label for="email">Email:</label>
+    <div>
+        <InputText id="email" @bind-Value="User.Email" />
+        <ValidationMessage For="@(() => User.Email)" />
+    </div>
+</div>
+<div class="form-field">
+    <label for="phoneNum">Phone Number:</label>
+    <div>
+        <InputText id="phoneNum" @bind-Value="User.Phone" />
+        <ValidationMessage For="@(() => User.Phone)" />
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required  User User { get; set;}
+}

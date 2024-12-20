@@ -1,0 +1,83 @@
+@using ShelfSpace
+
+@page "/profile/Detail/{id}"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject HttpClient HttpClient
+@inject MediaState MediaState
+@inject NavigationManager NavigationManager
+@* TESTING *@
+@inject ShelfSpace.Services.TestAppData testAppData
+
+
+<div class="main">
+    @if (item != null)
+    {
+        <h1 style="margin-top: 2rem;"></h1>
+        <hr/>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Genre</th>
+                    <th>Year Released/Published</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <ItemInfo media="item" />
+                </tr>
+            </tbody>
+        </table>
+    
+        <button disabled="@CannotDelete" @onclick="CancelDelete">Back</button>
+    }
+    else
+    {
+        <h1 colspan="4">No Media Selected</h1>
+        <button @onclick="ReturnToProfile">Go Back</button>
+    }
+
+</div>
+
+
+@code {
+    [Parameter]
+    public string? id { get; set; }
+    @* private static List<MediaItem> mediaItems = new(); *@
+    public bool CannotDelete = false;
+    private MediaItem? item;
+    private void SelectItem()
+    {
+        foreach (MediaItem media in testAppData.mediaItems)
+        {
+            if (media.SpecialId == id)
+            {
+                item = media;
+            }
+        }
+    }
+    private void DeleteItem(MouseEventArgs e)
+    {
+        if (item != null) {
+            CannotDelete = true;
+            testAppData.mediaItems.Remove(item);
+            ReturnToProfile();
+        }
+        
+    }
+    private void CancelDelete(MouseEventArgs e)
+    {
+        CannotDelete = true;
+        ReturnToProfile();
+    }
+    private void ReturnToProfile()
+    {
+        NavigationManager.NavigateTo("/profile");
+    }
+    protected override void OnInitialized()
+    {
+        SelectItem();
+    }
+}

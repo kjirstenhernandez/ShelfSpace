@@ -1,0 +1,117 @@
+﻿@inject UserState UserState
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject NavigationManager NavigationManager;
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">ShelfSpace</a>
+    </div>
+</div>
+
+@if (navBarClosed)
+{
+    <div class="navbar-toggler-box" @onclick="OpenNavMenu">
+        <img class="navbar-toggler"
+            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAYUlEQVR4nO3WyQnAMAwFUZcXp/+zDMF9TDrQJcYLmdfBRwimFEmSBgFuoLG/BtRsyMM5+i+GVCDYXwDX51+SJEmaCDN+iZ5dxIyfLMx4SZJ0Gsz4JXp2ETN+sjDjJUlloBfbFyzbu4GNjwAAAABJRU5ErkJggg=="
+            alt="Open Navigation Menu Button">
+    </div>
+}
+@if (navBarOpen) {
+    <div class="navbar-toggler-box" @onclick="CloseNavMenu">
+        <img class="navbar-toggler"
+            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB8UlEQVR4nO2avUrDYBSGgw4acBBRnAW9AAXt4KhgBb0J60VYb6Ctg3W07rrooDdgHXQvInZwEgTBoaK4WH8eKWQopW3Ol+8nMfSFjt/75qRP8p2cxPMGGsidgCr99QpkLORmAu9+qqoY1gjXAzBmsIixwDNMNRXTBaApMK0YLORIkPcNLKkaF5Fp00ARWeBXkFWIYj4C3AnMX4BpjSKmgGdBTh0Y1bn4Wn9nmC40CjkT+P8Ay1EzVBHLRfDeFnoXtIpQROwDmFPwnQHerSKlgdgNMCzwGwKunCClgVhe4LXrDCkNxL6AxT4+88CnU6Q0ELsH/B4n4zYWpDoFlJCp3GXtgXBt0bMtBcRaO/V627pV4e5dt4aUBmJPwAQwDjwmAikNxE6Cn0Qlz7UUEJPKHVIaiCUPKQ3E4r1LOUAsPqQMIhY/UoYQix+pTgF7EQpxf7tNPVqYudj9/4pUshAjDRsidloUP8lIHSe2aSQNbTxqD1bZtnUrwYEmAzHkSO13WVtOBGKkYfiAHKmmwXGQH2dTuCPwysfSVCJH6jqxI1PUhtizikPsN2eIIUdqK4J3zgliyJE618g4tYoY7l69TSq8evNtIrURtYi2rDXhOLVoC6lD3SLaMivGEUvTBwPVELOGxU84GiHZl6ZzBxrI660/wbBB07+Kr4gAAAAASUVORK5CYII="
+            alt="Close Navigation Menu Button">
+    </div>
+}
+
+<div class="nav-scrollable @hamburgerMenuDisplay">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+            <div class="nav-item px-3">
+            <NavLink class="nav-link btn btn-link" href="profile">
+                <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Profile
+            </NavLink>
+        </div>
+        
+        
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href=@url>
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> @name
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="edit-profile">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Edit Profile
+                </NavLink>
+            </div>
+
+
+        <div class="nav-item px-3">
+        
+    </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="registration">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Registration
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@code {
+    public string hamburgerMenuDisplay = "hamCollapse";
+    public bool navBarOpen = false;
+    public bool navBarClosed = true;
+
+    public User? user = null;
+    public string url = "#";
+    public string name = "";
+
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("Nav Component Initialized");
+        UserState.OnUserStateChanged += StateHasChanged;
+        LoginOut();
+        if (UserState.CurrentUser == null)
+        {
+            user = null;
+        }
+        else
+        {
+            user = UserState.CurrentUser;
+        }
+    }
+
+    private void OpenNavMenu()
+    {
+        navBarOpen = true;
+        navBarClosed = false;
+        hamburgerMenuDisplay = "";
+    }
+
+    private void CloseNavMenu()
+    {
+        navBarOpen = false;
+        navBarClosed = true;
+        hamburgerMenuDisplay = "hamCollapse";
+    }
+
+    private void LoginOut() {
+
+        if (UserState.IsAuthenticated){
+            url = "/logout";
+            name = "Logout";
+        }
+        else {
+            url = "/login";
+            name = "Login";
+        }
+    }
+
+}

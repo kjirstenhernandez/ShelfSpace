@@ -1,0 +1,98 @@
+@page "/profile/add/{id}"
+@attribute [Authorize]
+@inject MediaState MediaState
+@inject HttpClient HttpClient;
+@inject NavigationManager NavigationManager;
+@inject UserState UserState;
+
+
+
+<h1>Add New Media</h1>
+
+<div class="main">
+    <EditForm EditContext="@editContext" OnValidSubmit=AddItem>
+        <div class="add-cols">
+            <div class="add-media-details">
+                <h4>Information</h4>
+                @if (isError)
+                {
+                    <div class="alert alert-danger">Please enter valid information.</div>
+                }
+                <MediaItemForm Media="Media" />
+            </div>
+        </div>
+
+        <button class="add-button btn btn-warning" type="Submit" disabled=@isError>
+            Add to Shelf
+        </button>
+        <p>@success</p>
+
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+    </EditForm>
+</div>
+
+@code {
+
+    [Parameter]
+    public string? Id {get; set;}
+    MediaItem Media => MediaState.MediaItem;
+
+    User User => UserState.CurrentUser;  // Halted during testing, giving dummy user
+
+    
+    bool isError = false;
+    string success = "";
+    EditContext? editContext;
+
+    protected override void OnInitialized() {
+
+        if (User == null)
+        {
+            NavigationManager.NavigateTo("/login"); 
+            return;
+        }
+
+        
+        editContext = new EditContext(MediaState.MediaItem);
+        editContext.OnFieldChanged += HandleFieldChange;
+    }
+    void HandleFieldChange(object? sender, FieldChangedEventArgs e){
+        if (editContext != null){
+            isError = !editContext.Validate();
+        }
+        else
+        {
+            Console.WriteLine("EditContext is null during field change.");
+            isError = true;
+        }
+    
+        StateHasChanged();
+    }
+    [HttpPost]
+    private async Task AddItem() {
+        try {
+            Media.SpecialId = UniqueId.CreateRandomId();
+            Media.UserId = UserState.CurrentUser.Id!; // Associating the UserId
+            var response = await HttpClient.PostAsJsonAsync(
+                $"{NavigationManager.BaseUri}media/add", Media);
+            if (response.IsSuccessStatusCode) {
+                MediaState.ResetMedia();
+                success = "Media has been added to the shelf!";
+            }
+            else {
+                success = "Something's gone wrong, please try again";
+                
+            }
+            
+        }
+        catch (Exception ex) {
+            Console.WriteLine($"Unable to Complete Request: {ex.Message}");
+        }
+    
+    }
+
+}
+
+    
+  

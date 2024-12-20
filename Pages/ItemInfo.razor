@@ -1,0 +1,17 @@
+@using ShelfSpace
+
+<style>
+    .tableItemCenter {
+        text-align: center;
+    }
+</style>
+
+<td class="tableItemCenter">@media.Title</td>
+<td class="tableItemCenter">@media.Type</td>
+<td class="tableItemCenter">@media.Genre</td>
+<td class="tableItemCenter">@media.Year</td>
+
+@code {
+    [Parameter]
+    public required MediaItem media { get; set; }
+}

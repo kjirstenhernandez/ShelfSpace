@@ -1,0 +1,165 @@
+@page "/edit-profile"
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+<h1>Edit Profile</h1>
+
+<EditForm Model="UserProfile" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="form-group">
+        <label for="userId">User ID</label>
+        <InputText id="userId" @bind-Value="UserProfile.Id" class="form-control" @onblur="LoadUserData" />
+    </div>
+
+    <div class="form-group">
+        <label for="name">First Name</label>
+        <InputText id="name" @bind-Value="UserProfile.Name" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <InputText id="lastName" @bind-Value="UserProfile.LastName" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email</label>
+        <InputText id="email" @bind-Value="UserProfile.Email" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label for="address">Address</label>
+        <InputText id="address" @bind-Value="UserProfile.Address" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <InputText id="phone" @bind-Value="UserProfile.Phone" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label for="birthDate">Birth Date</label>
+        <InputDate id="birthDate" @bind-Value="UserProfile.BirthDate" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+
+    <button @onclick="DeleteUser" class="btn btn-danger">Delete User</button>
+</EditForm>
+
+@if (isProfileUpdated)
+{
+    <div class="updated-profile-info mt-4 p-4 border rounded shadow-sm">
+        <h4 class="text-success">Updated Profile Information</h4>
+
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>User ID:</strong> @UserProfile.Id</p>
+                <p><strong>First Name:</strong> @UserProfile.Name</p>
+                <p><strong>Last Name:</strong> @UserProfile.LastName</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Email:</strong> @UserProfile.Email</p>
+                <p><strong>Address:</strong> @UserProfile.Address</p>
+                <p><strong>Phone Number:</strong> @UserProfile.Phone</p>
+                <p><strong>Birth Date:</strong> @UserProfile.BirthDate.ToShortDateString()</p>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private User UserProfile = new User();
+    private bool isProfileUpdated = false;  // Flag to track whether the profile was updated
+
+    // Mocked data (simulate a user database)
+    private List<User> mockUsers = new List<User>
+    {
+        new User { Id = "1", Name = "John", LastName = "Doe", Email = "john.doe@example.com", Address = "123 Main St", Phone = "123-456-7890", BirthDate = new DateTime(1990, 1, 1) },
+        new User { Id = "2", Name = "Jane", LastName = "Doe", Email = "jane.doe@example.com", Address = "456 Oak St", Phone = "987-654-3210", BirthDate = new DateTime(1985, 5, 15) },
+        new User { Id = "3", Name = "Maria", LastName = "Ferreira", Email = "maria.ferreira@example.com", Address = "456 Avenida Brazil", Phone = "123-456-7895", BirthDate = new DateTime(1985, 5, 15) }
+    };
+
+    // Method to load user data from the mock database
+    private async Task LoadUserData()
+    {
+        if (!string.IsNullOrEmpty(UserProfile.Id))
+        {
+            // Simulate the API call by searching in the mock data
+            var user = mockUsers.FirstOrDefault(u => u.Id == UserProfile.Id);
+            
+            if (user != null)
+            {
+                // Populate the form fields with the mock data
+                UserProfile = user;
+            }
+            else
+            {
+                Console.WriteLine("User not found.");
+            }
+        }
+    }
+
+    // Method to handle the form submission and update the user data
+    private async Task HandleValidSubmit()
+    {
+        // Simulate an update to the mock data
+        var existingUser = mockUsers.FirstOrDefault(u => u.Id == UserProfile.Id);
+
+        if (existingUser != null)
+        {
+            // Update the user fields with the new data
+            existingUser.Name = UserProfile.Name;
+            existingUser.LastName = UserProfile.LastName;
+            existingUser.Email = UserProfile.Email;
+            existingUser.Address = UserProfile.Address;
+            existingUser.Phone = UserProfile.Phone;
+            existingUser.BirthDate = UserProfile.BirthDate;
+            
+            // Optionally, print confirmation to the console
+            Console.WriteLine("User updated successfully");
+
+            // Set the flag to indicate the profile was updated
+            isProfileUpdated = true;
+
+            // Display updated profile information immediately
+            StateHasChanged();  // This ensures the page is re-rendered after the update
+        }
+        else
+        {
+            Console.WriteLine("User not found for update.");
+        }
+    }
+
+    // Method to delete the user when the Delete button is clicked
+    private async Task DeleteUser()
+    {
+        var user = mockUsers.FirstOrDefault(u => u.Id == UserProfile.Id);
+        
+        if (user != null)
+        {
+            mockUsers.Remove(user);
+            Console.WriteLine("User deleted successfully");
+
+            // Optionally, clear the form and display a confirmation message
+            UserProfile = new User();  // Reset the form after deletion
+            isProfileUpdated = false; // Reset flag after deletion
+        }
+        else
+        {
+            Console.WriteLine("User not found for deletion.");
+        }
+
+        NavigationManager.NavigateTo("/home");  // Optionally, redirect to another page after deletion
+    }
+    
+    public class User
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public string Address { get; set; }
+        public string Phone { get; set; }
+        public DateTime BirthDate { get; set; }
+    }
+}

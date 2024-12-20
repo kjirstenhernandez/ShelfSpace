@@ -1,0 +1,112 @@
+@using ShelfSpace
+@page "/profile/edit/{id}"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject HttpClient HttpClient;
+@inject MediaState MediaState
+@inject Microsoft.AspNetCore.Components.NavigationManager navigation
+@inject NavigationManager NavigationManager;
+@* TESTING *@
+@inject ShelfSpace.Services.TestAppData testAppData
+
+<h1>Edit</h1>
+<h4>Media</h4>
+
+<hr />
+
+<div class="main">
+    <EditForm EditContext=editContext OnValidSubmit=EditItem>
+        <div class="add-cols">
+            <div class="add-media-details">
+                <h4>Information</h4>
+                 <form asp-action="Edit">
+                @if (isError)
+                {
+                    <div class="alert alert-danger">Please enter valid information.</div>
+                }
+                <MediaItemForm Media="EditMedia" />
+                </form>
+            </div>
+        </div>
+        
+
+        <button class="add-button btn btn-warning" type="Submit" disabled=@isError>
+            Edit Item
+        </button>
+        <div>
+        <a href='/profile'> Cancel </a>
+        </div>
+
+        <DataAnnotationsValidator />
+    </EditForm>
+</div>
+
+
+
+
+@code {
+
+        [Parameter]
+    public string? id { get; set; }
+   
+    MediaItem Media => MediaState.MediaItem;
+
+    bool isError = true;
+    EditContext? editContext;
+
+    private MediaItem? item;
+
+    MediaItem EditMedia = new MediaItem();
+
+        protected override void OnInitialized()
+    {
+       editContext = new(Media);
+       editContext.OnFieldChanged += HandleFieldChange;
+       SelectItem();
+    }
+
+    void HandleFieldChange(object? sender, FieldChangedEventArgs e)
+    
+    {
+        isError = editContext?.Validate() is false;
+        StateHasChanged();
+    }
+
+        private async Task HandleValidSubmit()
+    {
+        var response = await HttpClient.PutAsJsonAsync("api/media/update", EditMedia);
+
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo("/Profile");
+        }
+        else
+        {
+            // Handle error
+            Console.WriteLine("Error updating Media");
+        }
+    }
+
+        private void SelectItem()
+    {
+        foreach (MediaItem Media in testAppData.mediaItems)
+        {
+            if (Media.SpecialId == id)
+            {
+                item = Media;
+            }
+        }
+    }
+
+   
+    protected async Task EditItem()
+    {
+           var response = await HttpClient.PostAsJsonAsync(
+            $"{NavigationManager.BaseUri}media", MediaState.MediaItem);
+            
+
+    }
+
+
+    
+}

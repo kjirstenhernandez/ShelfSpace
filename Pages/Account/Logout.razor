@@ -1,0 +1,14 @@
+@page "/logout"
+@inject NavigationManager NavigationManager
+@inject UserState UserState
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Reset the UserState and authentication tokens
+        UserState.ClearUser();
+        
+        // Navigate to the home page
+        NavigationManager.NavigateTo("/");
+    }
+}
