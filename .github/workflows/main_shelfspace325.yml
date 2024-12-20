@@ -11,24 +11,27 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@main
+      - uses: actions/checkout@v2
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '9.x'
+          dotnet-version: '6.x'  # Ensure this matches your project's .NET version
+
+      - name: Restore dependencies
+        run: dotnet restore
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
-      - name: dotnet publish
-        run: dotnet publish -c Release --output ${{ github.workspace }}/myapp
+      - name: Publish with dotnet
+        run: dotnet publish -c Release -o ${{ github.workspace }}/publish
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
-          path: ${{ github.workspace }}/myapp
+          name: publish
+          path: ${{ github.workspace }}/publish
 
   deploy:
     runs-on: windows-latest
@@ -41,7 +44,7 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
+          name: publish
       
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -49,5 +52,5 @@ jobs:
         with:
           app-name: 'shelfspace325'
           slot-name: 'Production'
-          package: ${{ runner.workspace }}/myapp
+          package: ${{ runner.workspace }}/publish
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_348CF925CD3C430C8EEA8006E6CBE874 }}
