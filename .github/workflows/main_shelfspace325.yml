@@ -17,21 +17,24 @@ jobs:
       - name: List repository contents
         run: dir "${{ github.workspace }}"
 
+      - name: List ShelfSpace directory contents
+        run: dir "${{ github.workspace }}/ShelfSpace"
+
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '6.x'
 
       - name: Restore dependencies
-        run: dotnet restore ShelfSpace/ShelfSpace.csproj
+        run: dotnet restore "${{ github.workspace }}/ShelfSpace/ShelfSpace.csproj"
 
       - name: Build with dotnet
-        run: dotnet build ShelfSpace/ShelfSpace.csproj --configuration Release
+        run: dotnet build "${{ github.workspace }}/ShelfSpace/ShelfSpace.csproj" --configuration Release
 
       - name: Publish with dotnet
         run: |
           echo "Publishing application..."
-          dotnet publish ShelfSpace/ShelfSpace.csproj -c Release -o "${{ github.workspace }}/publish"
+          dotnet publish "${{ github.workspace }}/ShelfSpace/ShelfSpace.csproj" -c Release -o "${{ github.workspace }}/publish"
           echo "Publish completed. Listing published files:"
           dir "${{ github.workspace }}/publish"
 
