@@ -25,16 +25,16 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Publish with dotnet
-        run: dotnet publish -c Release -o ${{ github.workspace }}/publish
+        run: dotnet publish -c Release -o ${{ github.workspace }}\publish
 
       - name: Verify published output
-        run: ls ${{ github.workspace }}/publish
+        run: dir ${{ github.workspace }}\publish
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: publish
-          path: ${{ github.workspace }}/publish
+          path: ${{ github.workspace }}\publish
 
   deploy:
     runs-on: windows-latest
@@ -50,7 +50,7 @@ jobs:
           name: publish
       
       - name: Verify downloaded artifact
-        run: ls ${{ runner.workspace }}/publish
+        run: dir ${{ runner.workspace }}\publish
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -58,5 +58,5 @@ jobs:
         with:
           app-name: 'shelfspace325'
           slot-name: 'Production'
-          package: ${{ runner.workspace }}/publish
+          package: ${{ runner.workspace }}\publish
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_348CF925CD3C430C8EEA8006E6CBE874 }}
